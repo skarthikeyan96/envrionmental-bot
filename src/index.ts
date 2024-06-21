@@ -1,18 +1,19 @@
-
 // src/index.js
-import express, { Express, Request, Response } from "express";
-import dotenv from "dotenv";
-import twilio from 'twilio';
-import axios from 'axios'
+import express, { Express, Request, Response } from 'express';
+import dotenv from 'dotenv';
+import MessagingResponse from 'twilio/lib/twiml/MessagingResponse';
+import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import cors from 'cors';
 
 dotenv.config();
 
-const app = express();
+const app: Express = express();
 const port = process.env.PORT;
-const accountSid = process.env.ACCOUNTID;
-const authToken = process.env.AUTHTOKEN;
-// const client = new twilio(accountSid, authToken);
 
+const geminiAPIKey = process.env.GEMINIAPIKEY as string;
+const genAI = new GoogleGenerativeAI(geminiAPIKey);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 async function getAirQuality(lat: number, lon: number) {
   const apiKey = process.env.OPENWEATHERMAPAPI;
@@ -22,21 +23,36 @@ async function getAirQuality(lat: number, lon: number) {
   return airQualityIndex;
 }
 
-module.exports = { getAirQuality };
+const predictHazard = async (airQualityIndex: number) => {
+  const prompt = `The air quality index is ${airQualityIndex}. Predict the potential hazard level.`;
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  const text = response.text();
+  console.log(text);
+  return text;
+}
+
+app.use(cors());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Express + TypeScript Server');
 });
 
-const MessagingResponse = twilio.twiml.MessagingResponse;
-
 app.post('/incoming', async (req, res) => {
-  const message = req.body;
-  const {Latitude, Longtitude, From, Body} = message;
-  const airQualityIndex = await getAirQuality(Latitude, Longtitude);
-  console.log(`Air quality index in your places is ${airQualityIndex}`);
+  const { Latitude, Longitude, Body } = req.body;
+
+  console.log(Latitude, Longitude);
+  const airQuality = await getAirQuality(Latitude, Longitude);
+
+  console.log("airQuality", airQuality);
+  console.log(`Received message from ${Body}`);
+
+  const alert = await predictHazard(airQuality);
+
   const twiml = new MessagingResponse();
-  twiml.message(`You said: ${message.Body}`);
+  twiml.message(alert);
   res.writeHead(200, { 'Content-Type': 'text/xml' });
   res.end(twiml.toString());
 });
