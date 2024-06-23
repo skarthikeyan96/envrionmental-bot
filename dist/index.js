@@ -35,7 +35,7 @@ function getAirQuality(lat, lon) {
     });
 }
 const predictHazard = (airQualityIndex) => __awaiter(void 0, void 0, void 0, function* () {
-    const prompt = `The air quality index is ${airQualityIndex}. Predict the potential hazard level.`;
+    const prompt = `The air quality index is ${airQualityIndex}. The AQI scale is from 1 to 5, where 1 is good and 5 is very poor. Predict the potential hazard level and provide safety advice.`;
     const result = yield model.generateContent(prompt);
     const response = yield result.response;
     const text = response.text();

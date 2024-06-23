@@ -20,11 +20,12 @@ async function getAirQuality(lat: number, lon: number) {
   const url = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
   const response = await axios.get(url);
   const airQualityIndex = response.data.list[0].main.aqi;
+
   return airQualityIndex;
 }
 
 const predictHazard = async (airQualityIndex: number) => {
-  const prompt = `The air quality index is ${airQualityIndex}. Predict the potential hazard level.`;
+  const prompt = `The air quality index is ${airQualityIndex}. The AQI scale is from 1 to 5, where 1 is good and 5 is very poor. Predict the potential hazard level and provide safety advice.`;
   const result = await model.generateContent(prompt);
   const response = await result.response;
   const text = response.text();
