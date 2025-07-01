@@ -45,19 +45,30 @@ const predictHazard = (airQualityIndex) => __awaiter(void 0, void 0, void 0, fun
 app.use((0, cors_1.default)());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
-app.get('/', (req, res) => {
-    res.send('Express + TypeScript Server');
+app.get("/", (req, res) => {
+    res.send("Express + TypeScript Server");
 });
-app.post('/incoming', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { Latitude, Longitude, Body } = req.body;
-    console.log(Latitude, Longitude);
-    const airQuality = yield getAirQuality(Latitude, Longitude);
-    console.log("airQuality", airQuality);
-    console.log(`Received message from ${Body}`);
-    const alert = yield predictHazard(airQuality);
+app.post("/incoming", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // const { Latitude, Longitude, Body } = req.body;
+    // console.log(Latitude, Longitude);
+    // const airQuality = await getAirQuality(Latitude, Longitude);
+    // console.log("airQuality", airQuality);
+    // console.log(`Received message from ${Body}`);
+    // const alert = await predictHazard(airQuality);
+    // const twiml = new MessagingResponse();
+    // twiml.message(alert);
+    // res.writeHead(200, { 'Content-Type': 'text/xml' });
+    // res.end(twiml.toString());
+    const { Body } = req.body;
+    console.log(`Received message: ${Body}`);
     const twiml = new MessagingResponse_1.default();
-    twiml.message(alert);
-    res.writeHead(200, { 'Content-Type': 'text/xml' });
+    if (Body.trim().toLowerCase() === "hi") {
+        twiml.message(`🌸 Welcome to Sahaja Yoga! 🌸\n\nWe're happy to have you here.\n\n🧘 Join our daily guided meditation:\n👉 https://zoom.us/j/1234567890?pwd=abcDEF123456\n\n🕖 Every day at [Time]. See you there!`);
+    }
+    else {
+        twiml.message(`🙏 Thank you for reaching out.\nType "Hi" to receive today's meditation link and get started.`);
+    }
+    res.writeHead(200, { "Content-Type": "text/xml" });
     res.end(twiml.toString());
 }));
 app.listen(port, () => {
