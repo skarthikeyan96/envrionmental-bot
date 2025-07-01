@@ -1,10 +1,10 @@
 // src/index.js
-import express, { Express, Request, Response } from 'express';
-import dotenv from 'dotenv';
-import MessagingResponse from 'twilio/lib/twiml/MessagingResponse';
-import axios from 'axios';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import cors from 'cors';
+import express, { Express, Request, Response } from "express";
+import dotenv from "dotenv";
+import MessagingResponse from "twilio/lib/twiml/MessagingResponse";
+import axios from "axios";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import cors from "cors";
 
 dotenv.config();
 
@@ -31,30 +31,48 @@ const predictHazard = async (airQualityIndex: number) => {
   const text = response.text();
   console.log(text);
   return text;
-}
+};
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Express + TypeScript Server');
+app.get("/", (req: Request, res: Response) => {
+  res.send("Express + TypeScript Server");
 });
 
-app.post('/incoming', async (req, res) => {
-  const { Latitude, Longitude, Body } = req.body;
+app.post("/incoming", async (req, res) => {
+  // const { Latitude, Longitude, Body } = req.body;
 
-  console.log(Latitude, Longitude);
-  const airQuality = await getAirQuality(Latitude, Longitude);
+  // console.log(Latitude, Longitude);
+  // const airQuality = await getAirQuality(Latitude, Longitude);
 
-  console.log("airQuality", airQuality);
-  console.log(`Received message from ${Body}`);
+  // console.log("airQuality", airQuality);
+  // console.log(`Received message from ${Body}`);
 
-  const alert = await predictHazard(airQuality);
+  // const alert = await predictHazard(airQuality);
+
+  // const twiml = new MessagingResponse();
+  // twiml.message(alert);
+  // res.writeHead(200, { 'Content-Type': 'text/xml' });
+  // res.end(twiml.toString());
+
+  const { Body } = req.body;
+  console.log(`Received message: ${Body}`);
 
   const twiml = new MessagingResponse();
-  twiml.message(alert);
-  res.writeHead(200, { 'Content-Type': 'text/xml' });
+
+  if (Body.trim().toLowerCase() === "hi") {
+    twiml.message(
+      `🌸 Welcome to Sahaja Yoga! 🌸\n\nWe're happy to have you here.\n\n🧘 Join our daily guided meditation:\n👉 https://zoom.us/j/1234567890?pwd=abcDEF123456\n\n🕖 Every day at [Time]. See you there!`
+    );
+  } else {
+    twiml.message(
+      `🙏 Thank you for reaching out.\nType "Hi" to receive today's meditation link and get started.`
+    );
+  }
+
+  res.writeHead(200, { "Content-Type": "text/xml" });
   res.end(twiml.toString());
 });
 
